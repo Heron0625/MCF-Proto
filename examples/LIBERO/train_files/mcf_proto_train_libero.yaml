@@ -1,0 +1,88 @@
+run_id: mcf_proto_libero
+run_root_dir: results/checkpoints
+seed: 42
+wandb_entity: your_wandb_entity
+wandb_project: mcf_proto
+is_debug: false
+
+
+framework:
+  name: VLA_OFT
+  qwenvl:
+    base_vlm: /path/to/Qwen3-VL-4B-Instruct   # set to your local model path
+    attn_implementation: flash_attention_2
+  action_model:
+    action_model_type: mcf_proto
+    action_dim: 7
+    future_action_window_size: 7
+    past_action_window_size: 0
+
+    # State input configuration
+    use_state: true
+    state_dim: 8
+
+    # MCF groups: single-arm robot (7D: 3D pos + 3D rot + 1D gripper)
+    mcf_groups:
+      - {name: ee, slice: [0, 6]}
+    share_dictionary_across_groups: true
+
+    # Prototype parameters
+    num_trans_prototypes: 16      # Kt
+    num_rot_prototypes: 16        # Kr
+    d: 3                          # subspace dimension
+    share_R: true
+    share_gating: true
+    share_proto_gating: true
+    rotation_output_space: normalized
+    rotation_range_from_stats: true
+
+    # Loss weights (lambda_ortho, lambda_ent, lambda_smooth, rotation_weight)
+    loss_weights:
+      ortho: 1.0e-2
+      smooth: 1.0e-3
+      rotation_weight: 1.0
+    entropy_mode: encourage_sharp
+
+
+datasets:
+  vla_data:
+    dataset_py: lerobot_datasets
+    data_root_dir: /path/to/LEROBOT_LIBERO_DATA   # set to your data path
+    data_mix: libero_all
+    include_state: true
+    state_mask: [1, 1, 1, 1, 1, 1, 0, 0]
+    default_image_resolution: [3, 224, 224]
+    per_device_batch_size: 32
+    obs: ["image_0"]
+    video_backend: torchvision_av
+    num_workers: 8
+    pin_memory: true
+    persistent_workers: true
+    prefetch_factor: 1
+
+
+trainer:
+  max_train_steps: 100000
+  num_warmup_steps: 5000
+  save_interval: 5000
+  eval_interval: 100
+  learning_rate:
+    base: 2.5e-05
+    qwen_vl_interface: 1.0e-05
+    action_model: 1.0e-04
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-06
+  freeze_modules: ''
+  gradient_clipping: 1.0
+  gradient_accumulation_steps: 2
+  logging_frequency: 10
+
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-08
+    weight_decay: 1.0e-08
+
+  is_resume: false
+  save_optimizer_state: true
