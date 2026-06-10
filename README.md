@@ -36,6 +36,21 @@ L = L_act + lambda_ortho * L_ortho + lambda_smooth * L_smooth
 - **L_ortho**: Orthogonality regularizer `||B^T B - I||_F^2` for both prototype dictionaries
 - **L_smooth**: Temporal smoothness of the MCF rotation `1 - cos(angle(R_t @ R_{t-1}^T))`
 
+## Demo
+
+
+
+https://github.com/user-attachments/assets/eed361fc-e2cb-4e5a-bb31-1e015a8dc9e9
+
+
+
+https://github.com/user-attachments/assets/e46f2847-0a98-45ee-a363-c39a80b7274b
+
+
+
+https://github.com/user-attachments/assets/2a410d9e-9779-485b-b4be-d64cc24b547f
+
+
 
 ## Installation
 
